@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A beginner-friendly, unofficial guide to Databricks tags, governed tags, domains, subdomains and Pages.">
+<title>Databricks Data Organization Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Plan: Databricks-inspired palette: navy glass surfaces, oat text, lava accent. Dashboard shell: sidebar + topbar + glass cards.
+   Hero = interactive isometric office. DM Sans + DM Mono. Palette: Navy 900/800, Oat, Lava 600 + chart blue, amber, green. */
+:root{
+  --bg:#0b2026;--bg2:#1b3139;--panel:rgba(27,49,57,.66);--panel2:rgba(238,237,233,.06);--line:rgba(238,237,233,.15);
+  --tx:#f9f7f4;--mut:#a3b4b9;--c1:#ff3621;--c2:#4a9fe3;--c3:#ffab00;--c4:#00a972;--ok:#1fd09a;--bad:#ff8a7a;
+  --o1:#ff3621;--o2:#2a7a8c;
+  --ft:.30;--fl:.16;--fr:.08;--nodefill:rgba(11,32,38,.92);--shadow:0 12px 44px rgba(0,0,0,.35);
+  --disp:"DM Sans",system-ui,sans-serif;--body:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;--mono:"DM Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+body.lt{
+  --bg:#f9f7f4;--bg2:#eeede9;--panel:rgba(255,255,255,.82);--panel2:rgba(11,32,38,.05);--line:rgba(27,49,57,.18);
+  --tx:#0b2026;--mut:#566b72;--c1:#c92a15;--c2:#1b6aa8;--c3:#8f5d00;--c4:#00805a;--ok:#00805a;--bad:#c0301c;
+  --o1:#ff3621;--o2:#9cc6d0;
+  --ft:.55;--fl:.32;--fr:.2;--nodefill:rgba(255,255,255,.95);--shadow:0 10px 30px rgba(27,49,57,.14);color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 var(--body);overflow-x:hidden}
+body:before,body:after{content:"";position:fixed;z-index:0;width:520px;height:520px;border-radius:50%;filter:blur(110px);opacity:.28;pointer-events:none}
+body:before{background:var(--o1);top:-180px;left:-140px;opacity:.2}
+body:after{background:var(--o2);bottom:-200px;right:-140px;opacity:.3}
+body.lt:before,body.lt:after{opacity:.16}
+h1,h2,h3{font-family:var(--disp);letter-spacing:-.01em;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,4.4vw,2.6rem);line-height:1.12}
+h2{font-size:1.2rem;margin:30px 0 12px}
+h3{font-size:1.02rem}
+p{margin:0 0 10px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--c1);outline-offset:2px;border-radius:8px}
+.mut{color:var(--mut)}
+.ic{flex:none;display:block}
+.glass{background:var(--panel);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.07)}
+/* shell */
+.app{position:relative;z-index:1;display:grid;grid-template-columns:268px minmax(0,1fr);min-height:100%}
+.side{position:sticky;top:0;height:100vh;padding:18px 14px;display:flex;flex-direction:column;gap:6px;border-right:1px solid var(--line);background:var(--panel);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);overflow-y:auto}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 8px 14px}
+.brand b{font:600 1.02rem var(--disp);display:block;line-height:1.1}
+.brand small{color:var(--mut);font-size:.72rem}
+.ngrp{font-size:.72rem;color:var(--mut);padding:14px 10px 4px;font-weight:700}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:12px;color:var(--mut);text-decoration:none;font-weight:600;font-size:.94rem;border:1px solid transparent;transition:.18s}
+.nav:hover{color:var(--tx);background:var(--panel2)}
+.nav.on{color:var(--tx);background:linear-gradient(90deg,color-mix(in srgb,var(--a,var(--c1)) 22%,transparent),transparent);border-color:color-mix(in srgb,var(--a,var(--c1)) 40%,transparent)}
+.nav.on .ic{color:var(--a,var(--c1));filter:drop-shadow(0 0 6px var(--a,var(--c1)))}
+.nav .st{margin-left:auto;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:#04121a}
+.nav .st.ok{background:var(--ok);border-color:var(--ok)}
+.rank{margin-top:auto;padding:14px;font-size:.84rem}
+.rank .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.rank b{font-family:var(--disp)}
+.fine{font-size:.7rem;color:var(--mut);margin-top:10px;line-height:1.4}
+.main{min-width:0}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:12px 22px;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.crumbs{font-size:.88rem;color:var(--mut);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs b{color:var(--tx)}
+.ib{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);display:grid;place-items:center;cursor:pointer;transition:.18s}
+.ib:hover{border-color:var(--c1);box-shadow:0 0 16px color-mix(in srgb,var(--c1) 40%,transparent)}
+#menu{display:none}
+.xpchip{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:14px;border:1px solid var(--line);background:var(--panel2)}
+.xpchip .lv{font:700 .82rem var(--disp);color:var(--c3)}
+.xpchip .bar{width:84px;height:6px;border-radius:9px;background:var(--line);overflow:hidden}
+.xpchip .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--c1),var(--c3));border-radius:9px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.xpchip small{color:var(--mut);font-size:.74rem;font-variant-numeric:tabular-nums}
+.view{max-width:1120px;margin:0 auto;padding:22px 22px 70px;animation:vin .4s ease both}
+@keyframes vin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* hero + stats */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;padding:26px;align-items:center;overflow:hidden}
+.hero .lead{color:var(--mut);font-size:1.05rem;max-width:46ch;margin:12px 0 18px}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:13px;border:1px solid var(--line);background:var(--panel2);font-weight:700;cursor:pointer;transition:.18s;text-decoration:none;color:var(--tx)}
+.btn:hover{border-color:var(--c1);transform:translateY(-1px)}
+.btn.p{background:linear-gradient(120deg,#c71d0a,#dd2a14);color:#fff;border:0;box-shadow:0 8px 26px color-mix(in srgb,var(--c1) 35%,transparent)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);animation:rip .6s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(3.2);opacity:0}}
+.office{position:relative}
+.lab .office{max-width:560px;margin:0 auto}
+.office svg{width:100%;height:auto;display:block;overflow:visible}
+.ring{width:54px;height:54px;flex:none}
+.ring circle{fill:none;stroke-width:6}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:url(#rg);stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)}
+.sico{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--a) 16%,transparent);color:var(--a);border:1px solid color-mix(in srgb,var(--a) 40%,transparent)}
+.rinfo{padding:16px;margin-top:12px;display:grid;gap:6px}
+.rinfo h3{display:flex;align-items:center;gap:8px}
+.mono{font-family:var(--mono);font-size:.8rem}
+.pill{display:inline-flex;align-items:center;gap:6px;font:500 .78rem var(--mono);padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--a,var(--c1)) 16%,transparent);border:1px solid color-mix(in srgb,var(--a,var(--c1)) 45%,transparent);color:var(--a,var(--c1));margin:2px 4px 2px 0}
+.pill.dash{background:none;border-style:dashed;color:var(--mut);border-color:var(--line)}
+/* story timeline */
+/* missions */
+.tag{font:700 .72rem var(--body);padding:3px 9px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--mut)}
+.tag.ok{color:var(--ok);border-color:var(--ok)}
+/* module */
+.mh{display:flex;gap:16px;align-items:center;padding:20px;flex-wrap:wrap}
+.mh .sico{width:58px;height:58px;border-radius:17px}
+.mh .t{flex:1;min-width:200px}
+.mh .t .lead{color:var(--mut);margin:6px 0 0;max-width:60ch}
+.story{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;margin-top:14px}
+.av{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:700 1.1rem var(--disp);background:linear-gradient(135deg,var(--c1),var(--c3));color:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--c1) 28%,transparent)}
+.story small{color:var(--c1);font-weight:700}
+.story .bub{margin:4px 0 0;min-height:3em}
+.kcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.kc{display:flex;perspective:900px;cursor:pointer;animation:rise .5s both;animation-delay:calc(var(--i)*70ms);outline-offset:4px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.kt{flex:1;display:flex;transition:transform .25s;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+.ki{flex:1;display:grid;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.2,.8,.2,1)}
+.kc.flip .ki{transform:rotateY(180deg)}
+.kf,.kb{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;padding:16px 18px;min-height:104px;display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+.kf{border-top:3px solid var(--a)}
+.kb{transform:rotateY(180deg);background:linear-gradient(160deg,color-mix(in srgb,var(--a) 18%,var(--panel)),var(--panel));font-size:.93rem}
+.kf h3{font-size:1.08rem}
+.kf small,.kb small{color:var(--a);font-weight:700}
+.tiles{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.tile{overflow:hidden;transition:.2s}
+.tile.open{border-color:var(--a)}
+.tile button{display:flex;width:100%;gap:12px;align-items:center;text-align:left;background:none;border:0;padding:14px;cursor:pointer;min-height:56px}
+.tile .tn{flex:1;font-weight:700}
+.tile .pl{color:var(--a);transition:transform .25s}
+.tile.open .pl{transform:rotate(90deg)}
+.tile .tb{display:none;padding:0 14px 14px;color:var(--mut);font-size:.93rem}
+.tile.open .tb{display:block}
+.ex{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--panel2);border:1px dashed var(--line);font-size:.86rem;color:var(--tx)}
+.lab{padding:20px}
+.lab .hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.lab .hd b{font-family:var(--disp)}
+.lab .hd .tag{margin-left:auto}
+.seg{display:inline-flex;padding:4px;border-radius:13px;background:var(--panel2);border:1px solid var(--line);gap:4px;margin-bottom:12px}
+.seg button{border:0;background:none;padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:700;color:var(--mut);min-height:40px}
+.seg button.on{background:color-mix(in srgb,var(--c1) 22%,transparent);color:var(--tx);box-shadow:inset 0 0 0 1px var(--c1)}
+.rows{display:grid;gap:8px}
+.rw{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--panel2);transition:.2s}
+.rw.hit{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent);box-shadow:0 0 20px color-mix(in srgb,var(--ok) 25%,transparent)}
+.rw.dim{opacity:.32}
+.rw .nm{font:500 .86rem var(--mono);flex:1;min-width:0;overflow-wrap:anywhere}
+.rw .ty{color:var(--c1)}
+.sm{min-height:36px;padding:0 12px;font-size:.84rem;border-radius:10px}
+.msg{margin-top:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);font-size:.93rem;background:var(--panel2)}
+.msg.ok{border-color:var(--ok);color:var(--ok)}
+.msg.bad{border-color:var(--bad);color:var(--bad)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
+.fld input,.fld select{min-height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--tx);font:inherit;max-width:100%}
+.fld option{color:#111}
+.sw{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font:500 .84rem var(--mono);display:inline-flex;align-items:center;gap:8px;transition:.18s;color:var(--tx)}
+.chip:hover{border-color:var(--c1)}
+.chip.sel{border-color:var(--c1);box-shadow:0 0 0 2px color-mix(in srgb,var(--c1) 40%,transparent),0 0 18px color-mix(in srgb,var(--c1) 40%,transparent)}
+.chip.placed{opacity:.5;cursor:default}
+.shake{animation:shk .35s}
+@keyframes shk{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.cube.drop{animation:drop .55s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes drop{from{transform:translateY(-26px);opacity:0}to{transform:none;opacity:1}}
+.steps{display:flex;flex-wrap:wrap;gap:8px}
+.stp{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;border:1px solid var(--line);color:var(--mut);font-weight:700;font-size:.82rem}
+.stp.on{color:var(--ok);border-color:var(--ok)}
+.pg{border:1px solid var(--ok);border-radius:16px;padding:16px;margin-top:12px;background:color-mix(in srgb,var(--ok) 8%,transparent);animation:rise .5s both}
+.stamp{display:inline-flex;gap:6px;align-items:center;font-weight:700;font-size:.78rem;color:var(--ok);border:1.5px solid var(--ok);padding:3px 10px;border-radius:99px;animation:stp .5s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes stp{from{transform:scale(2) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+pre{margin:8px 0;padding:12px 14px;border-radius:12px;background:#06161b;color:#eeede9;overflow-x:auto;font:500 .8rem var(--mono);border:1px solid var(--line)}
+details.pb{margin-top:18px;padding:14px 18px}
+details.pb summary{cursor:pointer;font-weight:700;font-family:var(--disp);min-height:32px}
+details.pb ol{padding-left:20px;margin:10px 0}
+.done{display:flex;align-items:center;gap:14px;padding:16px 18px;margin-top:22px;flex-wrap:wrap}
+.done .t{flex:1;min-width:200px}
+.done.ready{border-color:var(--c4);box-shadow:0 0 30px color-mix(in srgb,var(--c4) 28%,transparent)}
+/* architecture */
+.arch{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;align-items:start}
+#asvg{width:100%;height:auto;display:block;max-width:480px;margin:0 auto}
+.nd{cursor:pointer;color:var(--a)}
+.nd rect{fill:var(--nodefill);stroke:currentColor;stroke-opacity:.55;stroke-width:1.4;transition:.25s}
+.nd text{fill:var(--tx);font:700 13.5px var(--body);pointer-events:none}
+.nd .s{font:500 10.5px var(--body);fill:var(--mut)}
+.nd:hover rect,.nd.on rect{stroke-opacity:1;filter:drop-shadow(0 0 9px currentColor)}
+.nd.seen rect{stroke-opacity:.9}
+.edge{fill:none;stroke:var(--mut);stroke-width:1.5;stroke-dasharray:5 6;animation:flow 1.1s linear infinite;opacity:.7}
+@keyframes flow{to{stroke-dashoffset:-22}}
+.elb{fill:var(--mut);font:600 10px var(--body)}
+.dp{padding:20px;position:sticky;top:78px}
+.dp ul{padding-left:18px;color:var(--mut);margin:8px 0}
+.prog{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin:10px 0}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--c1),var(--c3));width:0;transition:width .5s}
+/* quiz */
+.qa{display:grid;gap:10px;margin-top:12px}
+.qo{display:flex;gap:12px;align-items:center;text-align:left;width:100%;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;min-height:52px;transition:.2s}
+.qo:hover{border-color:var(--c1);transform:translateX(3px)}
+.qo.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.qo.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,40px);opacity:0;z-index:60;padding:12px 18px;border-radius:14px;transition:.4s cubic-bezier(.2,.8,.2,1);max-width:90vw;font-weight:700;pointer-events:none}
+#toast.on{transform:translate(-50%,0);opacity:1}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:70}
+#ov{display:none}
+
+.meta{font-size:.84rem;color:var(--mut);margin-bottom:6px}
+.glance{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:14px;overflow:hidden}
+.glance>div{padding:18px 20px;border-right:1px solid var(--line)}
+.glance>div:last-child{border-right:0}
+.glance h3{display:flex;align-items:center;gap:8px;color:var(--a);margin-bottom:6px}
+.glance p{margin:0;font-size:.96rem}
+.hint{font-size:.8rem;color:var(--mut);font-weight:500;margin-left:8px;font-family:var(--body)}
+.todo{margin:-4px 0 10px;color:var(--mut)}
+.todo b{color:var(--tx)}
+.blks{display:grid;gap:10px}
+.blk{display:flex;align-items:center;gap:16px;padding:16px 18px;text-decoration:none;color:inherit;transition:.2s;border-left:4px solid var(--a)}
+.blk:hover{transform:translateX(4px);box-shadow:0 12px 34px color-mix(in srgb,var(--a) 22%,transparent),var(--shadow)}
+.blk .num{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 1.1rem var(--disp);background:color-mix(in srgb,var(--a) 18%,transparent);color:var(--a);border:1px solid color-mix(in srgb,var(--a) 45%,transparent)}
+.blk .bt{flex:1;min-width:0}
+.blk h3{font-size:1.08rem}
+.blk p{margin:2px 0 4px;color:var(--mut);font-size:.95rem}
+.blk small{color:var(--mut);font-size:.78rem}
+.blk .bs{color:var(--ok);flex:none}
+.blk.alt .num{border-radius:12px}
+.why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.why>div{padding:18px}
+.why h3{margin:12px 0 4px}
+.why p{color:var(--mut);margin:0;font-size:.94rem}
+.strip{display:flex;align-items:center;gap:16px;padding:14px 18px;margin-top:14px;flex-wrap:wrap}
+.strip .t{flex:1;min-width:180px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;font-size:.8rem;color:var(--mut);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.how{padding:16px 18px;margin-top:14px;display:grid;gap:4px}
+@media (max-width:700px){.glance,.why{grid-template-columns:1fr}.glance>div{border-right:0;border-bottom:1px solid var(--line)}.glance>div:last-child{border-bottom:0}}
+
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:var(--panel2);font-family:var(--disp)}
+.tw{overflow-x:auto;border-radius:14px}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;padding:10px 16px;border-radius:10px;background:var(--c1);color:#fff;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+.rst{margin-top:8px;font-size:.78rem;color:var(--mut);background:none;border:0;padding:6px 0;cursor:pointer;text-align:left;text-decoration:underline}
+.gq{min-height:44px;width:100%;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--tx);font:inherit;margin:6px 0 12px}
+.gl{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.gl>div{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--panel2)}
+.gl b{display:block;color:var(--c3)}
+.gl span{color:var(--mut);font-size:.93rem}
+.src a{display:block;padding:6px 0;color:var(--c2);font-weight:600}
+/* office svg */
+.cube .ft{fill:currentColor;fill-opacity:var(--ft);stroke:currentColor;stroke-opacity:.85;stroke-width:1;stroke-linejoin:round}
+.cube .fl{fill:currentColor;fill-opacity:var(--fl);stroke:currentColor;stroke-opacity:.5;stroke-width:1;stroke-linejoin:round}
+.cube .fr{fill:currentColor;fill-opacity:var(--fr);stroke:currentColor;stroke-opacity:.5;stroke-width:1;stroke-linejoin:round}
+.cube.floor{color:#7f9aa3}
+.cube.floor .ft{fill-opacity:.1}
+.cube.floor .fl,.cube.floor .fr{fill-opacity:.07}
+.cube.asset{color:var(--tx)}
+.cube.hot{animation:hot 1.2s ease-in-out infinite}
+@keyframes hot{50%{filter:drop-shadow(0 0 7px currentColor)}}
+.room{cursor:pointer;transition:transform .3s cubic-bezier(.2,.8,.2,1);color:var(--a)}
+.room:hover{transform:translateY(-4px)}
+.room.sel{transform:translateY(-8px);filter:drop-shadow(0 0 12px var(--a))}
+.lbl rect{fill:var(--nodefill);stroke:var(--a);stroke-width:1.2}
+.lbl text{fill:var(--tx);font:700 14px var(--body);text-anchor:middle;pointer-events:none}
+.grid{stroke:var(--line);stroke-width:1;fill:none}
+.mote{fill:var(--c1);animation:fl 4s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-14px);opacity:.3}}
+@media (max-width:980px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;z-index:50;left:0;top:0;bottom:0;height:auto;width:290px;max-width:86vw;transform:translateX(-105%);transition:transform .3s}
+  body.mo .side{transform:none}
+  body.mo #ov{display:block;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40}
+  #menu{display:grid}
+  .hero{grid-template-columns:1fr}
+  .arch{grid-template-columns:1fr}
+  .dp{position:static}
+}
+@media (max-width:560px){
+  .view{padding:16px 16px 60px}
+  .top{padding:10px 14px;gap:8px}
+  .xpchip .bar{width:52px}
+  .xpchip small{display:none}
+  .hero{padding:18px}
+  .cols{grid-template-columns:1fr}
+  .tiles{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#view">Skip to content</a>
+<div class="app">
+  <div id="ov"></div>
+  <aside class="side" id="side" aria-label="Course menu"></aside>
+  <div class="main">
+    <header class="top">
+      <button class="ib" id="menu" aria-label="Open menu" aria-expanded="false"></button>
+      <div class="crumbs" id="crumbs"></div>
+      <div class="xpchip" aria-live="polite"><span class="lv" id="lvl">Lv 1</span><span class="bar"><i id="xbar"></i></span><small id="xtx">0 XP</small></div>
+      <button class="ib" id="theme" aria-label="Switch light or dark theme"></button>
+    </header>
+    <main id="view" class="view" tabindex="-1"></main>
+  </div>
+</div>
+<div id="toast" class="glass" role="status"></div>
+<canvas id="fx"></canvas>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* icons */
+const IC={
+ home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+ tag:'<path d="M20 12l-8 8-9-9V3h8l9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+ lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+ bld:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>',
+ fold:'<path d="M3 6h6l2 2h10v11H3z"/>',
+ book:'<path d="M4 19V5a2 2 0 012-2h13v14H6a2 2 0 00-2 2zm0 0a2 2 0 002 2h13"/>',
+ arch:'<rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/>',
+ cup:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0z"/><path d="M7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3"/>',
+ bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+ menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ moon:'<path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/>',
+ chk:'<path d="M5 12l5 5 9-10"/>',
+ star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+ go:'<path d="M9 6l6 6-6 6"/>',
+ tbl:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',
+ dash:'<rect x="3" y="3" width="8" height="10" rx="1"/><rect x="13" y="3" width="8" height="6" rx="1"/><rect x="13" y="11" width="8" height="10" rx="1"/><rect x="3" y="15" width="8" height="6" rx="1"/>',
+ nb:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+ srch:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+ ai:'<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>'
+};
+const I=(n,s=20)=>'<svg class="ic" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IC[n]+'</svg>';
+
+/* state */
+let S={xp:0,done:{},lab:{},seen:{},qbest:0,lt:0};
+try{const r=localStorage.getItem('ma-v3');if(r)Object.assign(S,JSON.parse(r))}catch(e){}
+function save(){try{localStorage.setItem('ma-v3',JSON.stringify(S))}catch(e){}}
+if(S.lt)document.body.classList.add('lt');
+
+/* course data */
+const C1='var(--c1)',C2='var(--c2)',C3='var(--c3)',C4='var(--c4)';
+const MODS=[
+{id:'tags',n:'Tags',sub:'Sticky notes for data',ic:'tag',a:C1,
+ story:"Riya's manager wants last month's Pune sales numbers. She finds 40 tables with names like tbl_sls_v2_final. Which one is current? She needs a label that says what each one is.",
+ one:'A tag is a small label on a table, dashboard or file. It helps people find, understand and handle data properly.',
+ cards:[["What is a tag?","A key and an optional value, like cost_center = sales. It describes an object and never changes the data inside it."],["Where does it go?","Catalogs, schemas, tables, columns, volumes, views, functions and models. Dashboards, Genie spaces, apps and notebooks can carry tags too."],["Does it pass down?","Yes, from a catalog or schema to everything inside. Table columns do not inherit. If the same key is set at several levels, the most specific one applies."],["Who can add one?","The object's owner, or anyone with APPLY TAG on it plus USE SCHEMA and USE CATALOG on its parents."],["Naming rules","Keys are case sensitive and up to 256 characters. They cannot contain . , - = / : or start or end with a space. Up to 50 tags per table or column."],["Keep it safe","Tag text is stored as plain text and may be replicated globally. Never put personal data in a tag name or value."]],
+ uses:[["srch","Find data fast","Search a tag and see every table and view that has it, instead of asking around.","Search team = sales to get all sales items. Tag search works for tables and views and needs the exact word."],["bolt","Know who owns and pays","Mark data with the team or cost center behind it, so usage can be traced to a team.","cost_center = marketing"],["lock","Mark sensitive data","Flag data that holds personal details so people handle it with care.","contains_pii = yes on an email column"],["chk","Show if data can be trusted","Say whether a table is approved, in testing or outdated.","status = certified or status = deprecated"],["fold","Clean up old work","Find everything from a finished project and remove it together.","project = diwali_campaign_2024"]],
+ pb:['Open Catalog in the left menu and select the table, schema or catalog.','On the Overview page, find Tags and click Add tags.','Type a key and a value, then save.','To find it later, type the key or value in the workspace search bar. The match must be exact.'],code:"-- Databricks Runtime 16.1 and above\nSET TAG ON TABLE sales.orders.daily `cost_center` = `sales`;\n\n-- Databricks Runtime 13.3 and above\nALTER TABLE sales.orders.daily SET TAGS ('cost_center' = 'sales');"},
+{id:'governed',n:'Governed tags',sub:'Approved labels only',ic:'lock',a:C2,
+ story:"Riya's team starts tagging. One person types Finance, another finance, another Fin. A search for Finance finds only one of them.",
+ one:'A governed tag is a tag with rules. Only approved values are allowed, and only approved people can assign it.',
+ cards:[["What is it?","An account-level tag with a policy attached. The policy sets allowed values and says who may assign it. Governed tags show a lock icon."],["Who controls it?","Policy permissions are CREATE, MANAGE and ASSIGN. To apply one you also need APPLY TAG on the object. Account admins hold the policy permissions by default."],["Limits","Up to 1,000 governed tags per account and 500 allowed values per tag. Values are case sensitive, so Finance and finance differ."],["System tags","Predefined by Databricks and not editable. Examples: system.certification_status, class.email_address and system.general_domain."],["Auto-tagging","Data Classification can detect sensitive columns and tag them for you. Some automation features are still beta."]],
+ uses:[["chk","Same words everywhere","Everyone picks from one approved list, so searches and reports never miss items.","Only Finance, HR and Sales are allowed values."],["lock","Automatic access rules","Governed tags can drive attribute-based access control (ABAC), so data labelled sensitive can be hidden from people who should not see it.","Tag a column as sensitive and the rule applies by itself."],["bld","Control who can label","Only people with the ASSIGN permission can apply the tag, which prevents mistakes and misuse.","Only the data team can mark data as certified."],["star","Certified or deprecated","The system tag system.certification_status marks assets as certified or deprecated.","Users see which data is approved."],["bolt","Automatic labelling","Databricks features can detect sensitive data and apply governed tags across many tables for you.","Saves tagging thousands of items by hand."],["book","Easier audits","Consistent labels let you show which data is sensitive and who can reach it.","Useful for compliance teams."]],
+ pb:['An admin creates the governed tag and lists its allowed values.','The admin decides who gets the ASSIGN permission.','People pick the tag from the Governed section of the tag menu. Other values are rejected.'],code:null},
+{id:'domains',n:'Domains',sub:'Business departments',ic:'bld',a:C3,
+ story:"Thousands of tables in one long list. Riya does not care about technical names. She wants to open Sales and see sales data.",
+ one:'A domain groups data by business area, such as Finance or HR, so people browse by department.',
+ cards:[["What is a domain?","A business area that groups assets so people can browse by department instead of by technical name."],["It is a governed tag","A domain's tag key is its governed tag name. Tag an asset with it and the asset joins the domain. An asset can be in several domains."],["Discover page","A curated place to browse by domain, search, and see recommended assets."],["Who manages it?","Curators hold MANAGE DISCOVER on the account, or MANAGE DOMAIN on one domain. Account and workspace admins have MANAGE DISCOVER by default."],["Default domain","Every account has a General domain. Tag an asset with system.general_domain to add it there."],["Good to know","An account admin may need to enable domains and Discover first. Dashboards and Genie agents show on Discover only for users with Consumer access or the Databricks SQL entitlement."]],
+ uses:[["srch","Browse like a shop","Open a department and see only its data, with owners and trust signals.","No need to know table names."],["star","Trusted data first","Discover shows certified assets, so people can start with the best data.","Less guesswork for new joiners."],["bld","Clear ownership","Each domain has curators, so there is always someone to ask.","Rights can be granted per domain."],["ai","Recommended domains","Databricks can suggest domains from patterns in your assets. A curator reviews and publishes them.","Faster set-up for large companies."],["ai","Smarter AI answers","Domains give AI assistants business context so they look in the right area.","Fewer wrong answers."]],
+ pb:['A curator creates the domain on the Discover page. It is backed by a governed tag such as Finance.','Add assets by tagging them with that tag, or open the domain page and click Add to Domain (one asset at a time).','Publish the domain page so everyone can browse it.'],code:null},
+{id:'subdomains',n:'Subdomains',sub:'Folders inside a department',ic:'fold',a:C4,
+ story:"Finance has hundreds of items. Revenue and Tax teams each want their own corner, and their own owner.",
+ one:'A subdomain is a smaller area inside a domain. Technically it is a governed tag named Parent/Name.',
+ cards:[["Parent/Name","A subdomain tag is written Parent/Name, such as Finance/Tax. Each deeper level adds one segment."],["Separate tags","Tagging with Finance/Tax does not add Finance. The asset appears on the Tax page and on its direct parent's page."],["Two ways in","Tag the asset, or open the page and click Add to Domain to add one asset at a time."],["How deep?","Up to five levels. Assets show on their direct parent's page, not on higher levels. Some older docs said one level, so check your version."]],
+ uses:[["fold","Shorter lists","People see only the part they care about.","Revenue instead of all of Finance."],["lock","Separate owners","A subdomain can have its own curator with MANAGE DOMAIN on it.","The Revenue lead manages Revenue only."],["bld","Matches real teams","Big departments are rarely one team.","Finance > Revenue, Costs, Tax"]],
+ pb:['Open the parent domain page and click Create subdomain.','Choose Create a tag and type the name. The parent prefix is added for you.','Click Create (a draft), then Edit Sections and Publish. Republish the parent so the card appears.'],code:null},
+{id:'pages',n:'Pages',sub:'One meaning for each term',ic:'book',a:C1,
+ story:"Sales says an active customer bought in the last 30 days. Support says it opened a ticket in 90. The two reports never match, and nobody knows why.",
+ one:'A Page is a written, official explanation of a business term, kept next to the data it describes.',
+ cards:[["What is a Page?","A governed, authoritative definition of a business concept, such as a term, entity or acronym."],["One home","Every Page is attached to one domain or subdomain. Create the domain first."],["What is inside","Seven fields: Domain, Owner, Synonyms, Description, Page body (rich text with @ mentions), Related assets and Sources."],["Who does what","Anyone with access can create a draft. Page managers and curators publish. Only curators can certify or deprecate."],["Helps AI","Genie One uses published Pages as authoritative context. Drafts only count in the owner's own conversations."],["Keep it safe","Do not put personal or regulated data in Page names, descriptions, synonyms or text. Pages are account-level and may be replicated globally."]],
+ uses:[["chk","One agreed meaning","Everyone reads the same definition, so reports match.","One official Active customer."],["tbl","Linked to real data","A Page points to the tables and metrics that use the word.","From definition to data in one click."],["star","Certified by curators","A curator can certify a Page so readers know it is approved.","Builds trust."],["srch","Synonyms and acronyms","Alternative names help people who search with a different word.","Customer also found as Client."],["ai","Teaches AI your business","Pages feed the context AI assistants use.","Answers follow your definitions."],["book","Great for new joiners","Always current, next to the data.","Fewer what-does-this-mean messages."]],
+ pb:['Make sure the domain exists first.','Create a Page. Write a short description and the full meaning, add synonyms, and check the owner (you are the owner by default).','Link related assets and sources.','A page manager or curator publishes it. A curator can then certify it.'],code:null},
+{id:'certified',n:'Certified',sub:'Mark data people can trust',ic:'star',a:C4,
+ story:"Riya finds three sales tables that look almost the same. One is the finance team's checked version. Another is a personal copy. The third is from 2019. Nothing on screen tells her which is safe to use.",
+ one:'Certified is a trust badge. A certified asset has been approved by your organisation. A deprecated asset is outdated and should not be used.',
+ cards:[["What is it?","A system governed tag named system.certification_status. It has two values: certified and deprecated. It is not a separate feature, just a tag with a badge."],["What do people see?","A check mark next to certified assets and a restricted icon next to deprecated ones, in Catalog Explorer and the workspace. Search can filter by certification status."],["Who can set it?","Someone who owns the object or has APPLY TAG on it, plus the ASSIGN permission on the system.certification_status tag."],["What can carry it?","Catalogs, schemas, tables, views, volumes and registered models. Newer releases add dashboards, Genie spaces and apps. Check your workspace for what is supported."],["Certified Pages","Pages have their own certify step. Only curators can certify or deprecate a Page. Think of it as the same idea for business definitions."],["Why AI cares","Genie One uses the signal to prefer assets your organisation vouches for, so AI answers lean on trusted data."]],
+ uses:[["chk","Show what is safe to use","Certify the checked table so new joiners pick it instead of a random copy.","gold.sales.monthly_sales is certified"],["lock","Warn about old data","Deprecate outdated tables so nobody builds new reports on them.","old_sales_2019 is deprecated"],["srch","Filter search","In search, filter by certification status to see only trusted assets.","Search with certificationStatus:certified"],["bolt","Automate it","An automation can deprecate tables that nobody has queried for 30 days and email their owners.","Rule: no queries in 30 days, so mark deprecated"],["star","Help AI answer better","AI assistants prefer certified assets, so answers are more reliable.","Genie One favours certified tables"],["book","Support audits","Show which data was approved and which is retired.","Useful for compliance teams"]],
+ pb:['Open Catalog and select a supported object, such as a table.','Click the kebab menu (three dots) and choose Assign certification.','Select Certified, Deprecated or None, then click Save.','To find certified data later, use the Certification status filter in search.'],code:"-- Mark a table as certified\nSET TAG ON TABLE main.sales.transactions `system.certification_status` = `certified`;\n\n-- Mark an old table as deprecated\nSET TAG ON TABLE main.sales.old_summary `system.certification_status` = `deprecated`;"},
+];
+const ORDER=['tags','governed','domains','subdomains','pages','certified','architecture','quiz'];
+const META={home:{n:'Dashboard',ic:'home',a:C1},architecture:{n:'Architecture',sub:'How the pieces connect',ic:'arch',a:C2},quiz:{n:'Final challenge',sub:'Test what you learned',ic:'cup',a:C3}};
+MODS.forEach(m=>META[m.id]=m);
+
+const EXTRA={
+tags:{title:'Tags: labels that make data easy to find',plain:'Sticky notes on your data, so people can find and understand it.',what:'A short label, such as team = sales, that you attach to a table, dashboard or other item. It describes the item and never changes the data.',why:'People find the right data in seconds instead of asking around, and can see who owns it and whether it is safe to use.',when:'Whenever data needs a clear owner, purpose, status or sensitivity level.',todo:'Tap Add tag on a few items, then press Search. Notice how quickly tagged items appear.',needs:''},
+governed:{title:'Governed tags: labels with rules',plain:'Sticky notes from an approved menu, so everyone uses the same words.',what:'A tag that comes with a rule book. Only approved values are allowed, and only approved people can add it.',why:'Everyone spells things the same way, so searches find everything. Databricks can also apply access rules to them automatically.',when:'For labels that matter for security, cost or reporting, such as department or sensitivity.',todo:'Compare the two modes and run the search in each. Then try assigning a tag with the wrong spelling.',needs:'Builds on Step 1'},
+domains:{title:'Domains: group data by department',plain:'Departments, such as Finance or HR, that group related data together.',what:'A business area such as Finance or HR. Everything that belongs to that area is grouped under it.',why:'People browse by department instead of hunting through technical names, and each area has clear owners.',when:'When there are many tables and dashboards and people struggle to find their own team\'s data.',todo:'Tap an asset, then tap the room (department) it belongs to.',needs:'Builds on Step 2'},
+subdomains:{title:'Subdomains: split a department into teams',plain:'Teams inside a department, such as Revenue inside Finance.',what:'A smaller area inside a domain, such as Revenue or Tax inside Finance. It is created with a governed tag named Parent/Name.',why:'Big departments stay organised, and each team can have its own owner.',when:'Only after a domain becomes crowded. Start with domains alone.',todo:'Pick a parent, type a subdomain name, then tag the sample table. See where it shows up.',needs:'Builds on Step 3'},
+pages:{title:'Pages: one official meaning for each business term',plain:'A dictionary entry that gives each business word one official meaning.',what:'A short written definition of a business word, such as active customer, kept next to the data it describes.',why:'Teams stop arguing about numbers because everyone uses the same meaning. AI assistants use it too.',when:'For any term that different teams might understand differently.',todo:'Press the button to replace two conflicting definitions with one official Page.',needs:'Builds on Step 3'},
+certified:{title:'Certified: a trust badge for your data',plain:'A green tick that says: this data is approved, use it.',what:'A badge that says a table or other asset is approved (certified) or outdated (deprecated). It is stored as a system governed tag.',why:'People stop guessing which copy is right. Good data stands out and old data carries a warning.',when:'When several versions of the same data exist, or when new people keep picking the wrong table.',todo:'Pick a role, then certify the right table and deprecate the old one. Try the Analyst role first to see what happens.',needs:'Builds on Step 2'},
+};
+MODS.forEach(m=>Object.assign(m,EXTRA[m.id]));
+META.home.n='Start here';META.reference={n:'Quick reference',sub:'Cheat sheet, questions and glossary',ic:'book',a:C4};META.architecture={n:'Big picture',sub:'How it all connects',ic:'arch',a:C2};META.quiz={n:'Final check',sub:'Test what you learned',ic:'cup',a:C3};
+const getM=id=>META[id];
+
+/* helpers */
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2600)}
+function count(el,to){if(RM){el.textContent=to;return}const s=performance.now();const f=t=>{const k=Math.min(1,(t-s)/700);el.textContent=Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
+function confetti(){if(RM)return;const c=$('#fx'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const cols=['#ff3621','#4a9fe3','#ffab00','#00a972','#eeede9'];const p=Array.from({length:110},()=>({x:innerWidth/2,y:innerHeight*.6,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,s:Math.random()*6+3,c:cols[Math.random()*5|0],r:Math.random()*6}));let n=0;(function f(){x.clearRect(0,0,c.width,c.height);p.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=.45;q.r+=.2;x.fillStyle=q.c;x.save();x.translate(q.x,q.y);x.rotate(q.r);x.fillRect(-q.s/2,-q.s/2,q.s,q.s*.6);x.restore()});if(++n<95)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('.btn');if(!b||b.disabled)return;const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height),s=document.createElement('span');s.className='rip';s.style.cssText='width:'+d+'px;height:'+d+'px;left:'+(e.clientX-r.left-d/2)+'px;top:'+(e.clientY-r.top-d/2)+'px';b.appendChild(s);setTimeout(()=>s.remove(),620)});
+const lvl=()=>Math.floor(S.xp/100)+1;
+const RANKS=['Newcomer','Explorer','Navigator','Architect','Master'];
+const rank=()=>RANKS[Math.min(lvl()-1,RANKS.length-1)];
+const rst={armed:0};
+function resetProgress(){if(!rst.armed){rst.armed=1;chrome();clearTimeout(rst.t);rst.t=setTimeout(()=>{rst.armed=0;chrome()},4000);return}rst.armed=0;S={xp:0,done:{},lab:{},seen:{},qbest:0,lt:S.lt};save();toast('Progress erased');route()}
+function chrome(){
+  $('#lvl').textContent='Lv '+lvl();$('#xtx').textContent=S.xp+' XP';$('#xbar').style.width=(S.xp%100)+'%';
+  const rk=$('#rk');if(rk){rk.innerHTML='<div class="row"><span>Level '+lvl()+'</span><b>'+rank()+'</b></div><div class="prog"><i style="width:'+(S.xp%100)+'%"></i></div><div class="mut">'+S.xp+' XP · '+(100-S.xp%100)+' to next level</div><button class="rst" id="rst">'+(rst.armed?'Tap again to erase progress':'Reset my progress')+'</button>';$('#rst').onclick=resetProgress}
+  ORDER.forEach(id=>{const s=$('#st-'+id);if(s){s.className='st'+(S.done[id]?' ok':'');s.innerHTML=S.done[id]?I('chk',12):''}});
+}
+function award(id,amt,msg){if(S.done[id])return;S.done[id]=1;const before=lvl();S.xp+=amt;save();chrome();confetti();toast(msg||('Step complete. +'+amt+' XP'));if(lvl()>before)setTimeout(()=>toast('Level up! You are now '+rank()),2700)}
+function labDone(id){if(!S.lab[id]){S.lab[id]=1;save();const b=$('#doneBar');if(b)paintDone(id)}}
+function paintDone(id){const b=$('#doneBar');if(!b)return;const d=S.done[id],ok=S.lab[id];const i=ORDER.indexOf(id),nx=ORDER[i+1];const nn=nx?getM(nx).n:'';
+  b.className='glass done'+(ok&&!d?' ready':'');
+  b.innerHTML='<div class="sico" style="--a:var(--c4)">'+I(d?'chk':'star',22)+'</div><div class="t"><b>'+(d?'Step complete. You earned 60 XP.':ok?(id==='architecture'?'You explored every block. Mark this step as done.':'Activity finished. Mark this step as done.'):(id==='architecture'?'Tap every block, or play the guided tour, to complete this step.':'Finish the activity above to complete this step.'))+'</b></div>'+
+   (d?(nx?'<a class="btn p" href="#'+nx+'">Next: '+nn+' '+I('go',16)+'</a>':'<a class="btn p" href="#home">Back to start</a>'):'<button class="btn p" id="claim" '+(ok?'':'disabled')+'>Mark step as done (+60 XP)</button>');
+  const c=$('#claim');if(c)c.onclick=()=>{award(id,60);paintDone(id)}}
+
+/* isometric office */
+const TW=30,TH=15,OX=270,OY=78;
+const P=(x,y,z)=>[OX+(x-y)*TW,OY+(x+y)*TH-z];
+const pts=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+function cube(gx,gy,sx,sy,z0,h,cls){const z1=z0+h;
+  const t=[P(gx,gy,z1),P(gx+sx,gy,z1),P(gx+sx,gy+sy,z1),P(gx,gy+sy,z1)];
+  const l=[P(gx,gy+sy,z0),P(gx+sx,gy+sy,z0),P(gx+sx,gy+sy,z1),P(gx,gy+sy,z1)];
+  const r=[P(gx+sx,gy,z0),P(gx+sx,gy+sy,z0),P(gx+sx,gy+sy,z1),P(gx+sx,gy,z1)];
+  return '<g class="cube '+(cls||'')+'"><polygon class="fr" points="'+pts(r)+'"/><polygon class="fl" points="'+pts(l)+'"/><polygon class="ft" points="'+pts(t)+'"/></g>'}
+const ROOMS=[
+ {id:'fin',n:'Finance',tag:'Finance',a:C1,gx:.4,gy:.4,sx:3.2,sy:3,h:44,subs:['Revenue','Costs'],assets:['monthly_revenue','invoices']},
+ {id:'sales',n:'Sales',tag:'Sales',a:C2,gx:.4,gy:4.3,sx:3.2,sy:2.8,h:34,subs:['Pune','Europe'],assets:['pipeline_forecast','orders_daily']},
+ {id:'hr',n:'HR',tag:'HR',a:C3,gx:4.4,gy:.4,sx:2.8,sy:2.6,h:30,subs:[],assets:['payroll','employee_list']},
+ {id:'gen',n:'General',tag:'system.general_domain',a:C4,gx:4.4,gy:3.8,sx:2.8,sy:3.3,h:20,subs:[],assets:['legacy_misc']}
+];
+function Office(host,cfg){
+  const st={sel:cfg.sel||null,showSub:!!cfg.showSub,placed:{},last:null,extra:null};
+  function render(){
+    let s='<svg viewBox="0 0 540 330" role="group" aria-label="Isometric office with four domains">';
+    s+=cube(-.6,-.6,8.8,8.3,-8,8,'floor');
+    for(let i=0;i<=8;i++){const a=P(-.6+i*1.1,-.6,0),b=P(-.6+i*1.1,7.7,0);s+='<path class="grid" d="M'+a+'L'+b+'"/>'}
+    for(let i=0;i<=7;i++){const a=P(-.6,-.6+i*1.19,0),b=P(8.2,-.6+i*1.19,0);s+='<path class="grid" d="M'+a+'L'+b+'"/>'}
+    [[60,150],[470,120],[250,40],[380,260],[120,250],[300,300]].forEach((m,i)=>{s+='<circle class="mote" cx="'+m[0]+'" cy="'+m[1]+'" r="'+(2+i%2)+'" style="animation-delay:'+(i*.6)+'s"/>'});
+    const rs=ROOMS.slice().sort((a,b)=>(a.gx+a.gy)-(b.gx+b.gy));
+    rs.forEach(r=>{
+      s+='<g class="room'+(st.sel===r.id?' sel':'')+'" data-room="'+r.id+'" style="--a:'+r.a+'" tabindex="0" role="button" aria-label="'+r.n+' domain">';
+      s+=cube(r.gx,r.gy,r.sx,r.sy,0,r.h,'');
+      if(st.showSub){const list=r.subs.slice();if(st.extra&&st.extra.room===r.id)list.push(st.extra.name);
+        list.forEach((nm,i)=>{s+=cube(r.gx+.3+i*.95,r.gy+.35,.8,.8,r.h,12,(st.extra&&st.extra.name===nm&&st.extra.room===r.id)?'hot':'')})}
+      const n=st.placed[r.id]||0;
+      for(let k=0;k<n;k++){s+=cube(r.gx+.35+(k%4)*.65,r.gy+r.sy-1-Math.floor(k/4)*.65,.5,.5,r.h,5,'asset'+(st.last===r.id&&k===n-1?' drop':''))}
+      s+='</g>'});
+    rs.forEach(r=>{const c=P(r.gx+r.sx/2,r.gy+r.sy/2,r.h+(st.showSub?30:20));const w=r.n.length*9+26;
+      s+='<g class="lbl" data-room="'+r.id+'" style="--a:'+r.a+';cursor:pointer"><rect x="'+(c[0]-w/2)+'" y="'+(c[1]-14)+'" width="'+w+'" height="26" rx="13"/><text x="'+c[0]+'" y="'+(c[1]+4)+'">'+r.n+'</text></g>'});
+    host.innerHTML=s+'</svg>'}
+  host.addEventListener('click',e=>{const r=e.target.closest('[data-room]');if(r&&cfg.onPick)cfg.onPick(r.dataset.room)});
+  host.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const r=e.target.closest('[data-room]');if(r){e.preventDefault();cfg.onPick&&cfg.onPick(r.dataset.room)}}});
+  render();
+  return {set(o){Object.assign(st,o);render()},st};
+}
+const RM_=id=>ROOMS.find(r=>r.id===id);
+
+/* shell */
+function buildSide(){
+  const nav=(id,label)=>{const m=getM(id);return '<a class="nav" href="#'+id+'" data-id="'+id+'" style="--a:'+m.a+'">'+I(m.ic,20)+'<span>'+(label||m.n)+'</span>'+(id==='home'||id==='reference'?'':'<span class="st" id="st-'+id+'"></span>')+'</a>'};
+  $('#side').innerHTML='<div class="brand"><svg width="36" height="36" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff3621"/><stop offset="1" stop-color="#ffab00"/></linearGradient></defs><path d="M20 4l15 8.5v17L20 38 5 29.5v-17z" fill="none" stroke="url(#bg1)" stroke-width="2.2"/><path d="M20 21L5 12.5M20 21l15-8.5M20 21v17" stroke="url(#bg1)" stroke-width="2" opacity=".7"/></svg><div><b>Data Organization Guide</b><small>Unofficial guide to Databricks</small></div></div>'+
+   '<div class="ngrp">Start here</div>'+nav('home','Overview')+'<div class="ngrp">Learn in order</div>'+MODS.map((m,i)=>nav(m.id,(i+1)+'. '+m.n)).join('')+'<div class="ngrp">Wrap up</div>'+nav('architecture','Big picture')+nav('quiz','Final check')+'<div class="ngrp">Look things up</div>'+nav('reference','Quick reference')+
+   '<div class="glass rank" id="rk"></div><div class="fine">Independent learning guide. Not affiliated with or endorsed by Databricks. Examples are made up. Based on public Databricks documentation. Colors follow the public Databricks palette; no logos or marks are used.</div>';
+  $('#menu').innerHTML=I('menu',20);
+}
+function setTheme(){$('#theme').innerHTML=I(S.lt?'moon':'sun',20)}
+
+/* views */
+function viewHome(){
+  const doneN=Object.keys(S.done).length;
+  const next=ORDER.find(id=>!S.done[id])||'quiz';const nm=getM(next);
+  const circ=2*Math.PI*21,pct=doneN/ORDER.length;
+  const blocks=ORDER.slice(0,6).map((id,i)=>{const m=getM(id);return '<a class="glass blk" href="#'+id+'" style="--a:'+m.a+'"><span class="num">'+(i+1)+'</span><div class="bt"><h3>'+m.n+'</h3><p>'+m.plain+'</p><small>'+(m.needs?m.needs+' · ':'')+'About 4 minutes</small></div><span class="bs">'+(S.done[id]?I('chk',18):I('go',18))+'</span></a>'}).join('');
+  const more=['architecture','quiz'].map(id=>{const m=getM(id);return '<a class="glass blk alt" href="#'+id+'" style="--a:'+m.a+'"><span class="num">'+I(m.ic,20)+'</span><div class="bt"><h3>'+m.n+'</h3><p>'+m.sub+'</p></div><span class="bs">'+(S.done[id]?I('chk',18):I('go',18))+'</span></a>'}).join('');
+  return '<section class="glass hero"><div><h1>Make company data easy to find, trust and understand</h1><p class="lead">A beginner-friendly guide to the Databricks features that keep data organised: tags, governed tags, domains, subdomains, Pages and the Certified badge. About 25 minutes. No technical background needed.</p><div class="cta"><a class="btn p" href="#'+next+'">'+(doneN?'Continue: '+nm.n:'Start with Step 1: Tags')+' '+I('go',16)+'</a><a class="btn" href="#architecture">Jump to the big picture</a></div></div><div><div class="office" id="hero"></div><div class="legend"><span><i style="background:var(--c1)"></i>Room = a domain</span><span><i style="background:var(--c3)"></i>Block on a room = a subdomain</span><span><i style="background:var(--tx)"></i>Small cube = a table or dashboard</span></div><div class="mut" style="text-align:center;font-size:.84rem;margin-top:4px">Tap a room to see what it means</div></div></section>'+
+  '<div class="glass rinfo" id="rinfo"></div>'+
+  '<div class="glass strip"><svg class="ring" viewBox="0 0 54 54" aria-hidden="true"><defs><linearGradient id="rg"><stop stop-color="#ff3621"/><stop offset="1" stop-color="#ffab00"/></linearGradient></defs><circle class="bg" cx="27" cy="27" r="21"/><circle class="fg" cx="27" cy="27" r="21" transform="rotate(-90 27 27)" stroke-dasharray="'+circ+'" stroke-dashoffset="'+circ+'" data-to="'+(circ*(1-pct))+'"/></svg><div class="t"><b>'+doneN+' of '+ORDER.length+' sections complete</b><div class="mut" style="font-size:.88rem">Level '+lvl()+' ('+rank()+') · '+S.xp+' XP. You earn XP for finishing activities.</div></div><a class="btn" href="#'+next+'">'+(doneN?'Continue':'Begin')+'</a></div>'+
+  '<h2>Why learn this?</h2><div class="why"><div class="glass"><div class="sico" style="--a:var(--c1)">'+I('srch',22)+'</div><h3>Find data faster</h3><p>Search by label or browse by department instead of asking colleagues where things are.</p></div><div class="glass"><div class="sico" style="--a:var(--c2)">'+I('chk',22)+'</div><h3>Trust what you find</h3><p>See the owner, the status and the official meaning before you use a table.</p></div><div class="glass"><div class="sico" style="--a:var(--c4)">'+I('lock',22)+'</div><h3>Keep data consistent and safe</h3><p>Approved labels and rules mean fewer mistakes, and sensitive data can be protected automatically.</p></div></div>'+
+  '<h2>The six building blocks, in learning order</h2><p class="mut" style="margin-top:-4px">Each step builds on the one before it, so start at Step 1.</p><div class="blks">'+blocks+'</div>'+
+  '<h2>After the six steps</h2><div class="blks">'+more+'</div>'+'<h2>Need a quick lookup?</h2><div class="blks"><a class="glass blk alt" href="#reference" style="--a:var(--c4)"><span class="num">'+I('book',20)+'</span><div class="bt"><h3>Quick reference</h3><p>Cheat sheet, common questions, glossary and links to the official docs.</p></div><span class="bs">'+I('go',18)+'</span></a></div>';
+}
+function mountHome(){
+  const info=id=>{const r=RM_(id);const b=$('#rinfo');b.style.setProperty('--a',r.a);
+    b.innerHTML='<h3>'+I('bld',18)+' '+r.n+' <span class="mut" style="font-weight:500">is a domain</span></h3><p style="margin:0;color:var(--mut)">'+(r.id==='gen'?'The default domain every account has. Tag an asset with system.general_domain to add it here.':'Every table or dashboard tagged <span class="pill" style="--a:'+r.a+'">'+r.tag+'</span> belongs to this room, so people in '+r.n+' find their data in one place.')+'</p>'+(r.subs.length?'<div><span class="mut" style="font-size:.88rem">Subdomains inside it:</span> '+r.subs.map(x=>'<span class="pill" style="--a:'+r.a+'">'+r.tag+'/'+x+'</span>').join('')+'</div>':'')};
+  const o=Office($('#hero'),{sel:'fin',showSub:true,onPick:id=>{o.set({sel:id});info(id)}});info('fin');
+  requestAnimationFrame(()=>$$('.ring .fg').forEach(c=>c.style.strokeDashoffset=c.dataset.to));
+}
+function viewMod(m){
+  const idx=ORDER.indexOf(m.id)+1;
+  return '<section class="glass mh" style="--a:'+m.a+'"><div class="sico" style="--a:'+m.a+'">'+I(m.ic,28)+'</div><div class="t"><div class="meta">Step '+idx+' of 6 · about 4 minutes'+(m.needs?' · '+m.needs:'')+'</div><h1>'+m.title+'</h1></div></section>'+
+  '<section class="glass glance" style="--a:'+m.a+'"><div><h3>'+I('book',18)+'What it is</h3><p>'+m.what+'</p></div><div><h3>'+I('star',18)+'Why it is useful</h3><p>'+m.why+'</p></div><div><h3>'+I('bolt',18)+'Use it when</h3><p>'+m.when+'</p></div></section>'+
+  '<h2>Example: Riya\'s first week</h2><div class="glass story"><div class="av">R</div><div><small>Riya, new data analyst</small><p class="bub" id="bub"></p></div></div>'+
+  '<h2>Try it yourself</h2><p class="todo"><b>What to do:</b> '+m.todo+'</p><div class="glass lab" id="lab" style="--a:'+m.a+'"></div>'+
+  '<h2>Key facts <span class="hint">Tap a card to flip it</span></h2><div class="kcs">'+m.cards.map((c,i)=>'<div class="kc" tabindex="0" role="button" aria-pressed="false" style="--a:'+m.a+';--i:'+i+'"><div class="kt"><div class="ki"><div class="glass kf"><div><h3>'+c[0]+'</h3></div><span class="mut" style="font-size:.82rem">Tap to read</span></div><div class="glass kb"><div><small>'+c[0]+'</small><p style="margin-top:6px">'+c[1]+'</p></div></div></div></div></div>').join('')+'</div>'+
+  '<h2>Ways people use it <span class="hint">Tap to open</span></h2><div class="tiles">'+m.uses.map(u=>'<div class="glass tile" style="--a:'+m.a+'"><button aria-expanded="false"><span class="sico" style="--a:'+m.a+';width:36px;height:36px;border-radius:11px">'+I(u[0],18)+'</span><span class="tn">'+u[1]+'</span><span class="pl">'+I('go',18)+'</span></button><div class="tb">'+u[2]+'<div class="ex">'+u[3]+'</div></div></div>').join('')+'</div>'+
+  '<h2>How to do it in Databricks</h2><div class="glass pb" style="padding:14px 18px"><ol style="padding-left:20px;margin:0">'+m.pb.map(x=>'<li>'+x+'</li>').join('')+'</ol>'+(m.code?'<pre>'+m.code+'</pre>':'')+'</div><div id="doneBar"></div>';
+}
+function wireCommon(m){
+  $('#bub').textContent=m.story;
+  $$('.kc').forEach(c=>{const f=()=>{c.classList.toggle('flip');c.setAttribute('aria-pressed',c.classList.contains('flip'))};c.onclick=f;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}};
+    if(matchMedia('(hover:hover)').matches&&!RM){const t=$('.kt',c);c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();t.style.setProperty('--ry',((e.clientX-r.left)/r.width-.5)*10+'deg');t.style.setProperty('--rx',-((e.clientY-r.top)/r.height-.5)*10+'deg')});c.addEventListener('pointerleave',()=>{t.style.setProperty('--ry','0deg');t.style.setProperty('--rx','0deg')})}});
+  $$('.tile button').forEach(b=>b.onclick=()=>{const t=b.parentNode;const o=t.classList.toggle('open');b.setAttribute('aria-expanded',o)});
+  paintDone(m.id);
+}
+/* labs */
+const msg=(el,c,t)=>{el.className='msg '+c;el.textContent=t};
+const LABS={
+tags(){
+  const L=$('#lab');const items=[['tbl','gold.sales.monthly_sales','sales'],['dash','Marketing performance','marketing'],['tbl','hr.people.employees','hr'],['nb','orders_cleanup','sales']];
+  const tg={};let srch=false;
+  function draw(){L.innerHTML='<div class="hd"><b>Asset catalog</b><span class="tag">Tap Add tag, then search</span></div><div class="rows">'+items.map((x,i)=>{const hit=srch&&tg[i]&&x[2]==='sales';return '<div class="rw'+(hit?' hit':'')+(srch&&!hit?' dim':'')+'"><span class="ty">'+I(x[0],20)+'</span><span class="nm">'+x[1]+'</span>'+(tg[i]?'<span class="pill" style="--a:var(--c1)">team = '+x[2]+'</span>':'')+'<button class="btn sm" data-i="'+i+'">'+(tg[i]?'Remove':'Add tag')+'</button></div>'}).join('')+'</div><div class="fld"><button class="btn p" id="sr">'+I('srch',18)+' Search team = sales</button><button class="btn" id="rs">Reset</button></div><div class="msg" id="m">Add a tag to at least one sales item, then search.</div>';
+    $$('[data-i]',L).forEach(b=>b.onclick=()=>{const i=+b.dataset.i;tg[i]=!tg[i];srch=false;draw()});
+    $('#sr').onclick=()=>{srch=true;draw();const n=items.filter((x,i)=>tg[i]&&x[2]==='sales').length;if(!Object.values(tg).some(Boolean))msg($('#m'),'bad','No item has a tag yet, so the search finds nothing. This is the problem tags solve.');else if(!n)msg($('#m'),'bad','Only non-sales items are tagged. Tag a sales item and search again.');else{msg($('#m'),'ok','Found '+n+' sales item'+(n>1?'s':'')+' in one search. Without tags you would have asked around.');labDone('tags')}};
+    $('#rs').onclick=()=>{for(const k in tg)delete tg[k];srch=false;draw()}}
+  draw()},
+governed(){
+  const L=$('#lab');let mode=1,found=false;
+  function draw(){L.innerHTML='<div class="hd"><b>Free text vs governed</b></div><div class="seg" role="tablist"><button class="'+(mode===1?'on':'')+'" data-m="1">Free-text tags</button><button class="'+(mode===2?'on':'')+'" data-m="2">Governed tag</button></div>'+
+   (mode===1?'<div><span class="pill" style="--a:var(--c3)">department = Finance</span><span class="pill" style="--a:var(--c3)">department = finance</span><span class="pill" style="--a:var(--c3)">department = Fin.</span><span class="pill" style="--a:var(--c3)">department = FINANCE team</span></div><p class="mut">Four people, four spellings.</p>':'<div><span class="pill" style="--a:var(--c2)">'+I('lock',12)+' department = Finance</span><span class="pill" style="--a:var(--c2)">'+I('lock',12)+' department = HR</span><span class="pill" style="--a:var(--c2)">'+I('lock',12)+' department = Sales</span></div><p class="mut">Everyone picks from one approved menu.</p>')+
+   '<div class="fld"><button class="btn p" id="gs">'+I('srch',18)+' Search department = Finance</button></div><div class="msg" id="gm">Run the search in both modes and compare.</div>'+
+   '<h3 style="margin-top:20px">Assign a tag</h3><div class="fld"><select id="gk" aria-label="Tag key"><option value="g">department (governed)</option><option value="n">note (regular)</option></select><input id="gv" value="finance" aria-label="Tag value"><label class="sw"><input type="checkbox" id="gp" checked> I have ASSIGN permission</label><button class="btn" id="ga">Assign</button></div><div class="msg" id="gm2">Governed tags only accept allowed values: Finance, HR, Sales (exact spelling).</div>';
+   $$('[data-m]',L).forEach(b=>b.onclick=()=>{mode=+b.dataset.m;draw()});
+   $('#gs').onclick=()=>{if(mode===1)msg($('#gm'),'bad','Found 1 of 4. The rest were spelled differently and got missed.');else{msg($('#gm'),'ok','Found 4 of 4. One spelling means nothing is missed.');labDone('governed')}};
+   $('#ga').onclick=()=>{const g=$('#gk').value==='g',v=$('#gv').value.trim(),p=$('#gp').checked,m=$('#gm2');
+     if(!v)return msg(m,'bad','Type a value first.');
+     if(!g)return msg(m,'ok','Applied. A regular tag accepts any text, including typos.');
+     if(!p)return msg(m,'bad','Blocked. Assigning a governed tag also needs the ASSIGN permission on that tag.');
+     if(['Finance','HR','Sales'].includes(v)){msg(m,'ok','Applied. "'+v+'" matches the tag policy.');labDone('governed')}else msg(m,'bad','Rejected. "'+v+'" is not an allowed value. Allowed: Finance, HR, Sales (exact spelling).')}}
+  draw()},
+domains(){
+  const L=$('#lab');const A=[['monthly_revenue','fin'],['invoices','fin'],['payroll','hr'],['employee_list','hr'],['pipeline_forecast','sales'],['scratch_notes','gen']];
+  let sel=null;const pl={};
+  L.innerHTML='<div class="hd"><b>Sort assets into domains</b><span class="tag" id="cnt">0 / 6</span></div><div class="office" id="off"></div><div class="chips" id="chs"></div><div class="msg" id="dm">Tap an asset, then tap the room it belongs to.</div>';
+  const o=Office($('#off'),{onPick:id=>{if(sel===null)return msg($('#dm'),'','Pick an asset first.');
+    if(A[sel][1]===id){pl[sel]=id;const cnt={};Object.values(pl).forEach(r=>cnt[r]=(cnt[r]||0)+1);const nm=A[sel][0];sel=null;o.set({placed:cnt,last:id,sel:id});chips();const n=Object.keys(pl).length;$('#cnt').textContent=n+' / 6';
+      if(n===6){msg($('#dm'),'ok','All sorted. Now anyone can browse by department.');labDone('domains')}else msg($('#dm'),'ok',nm+' joined '+RM_(id).n+'.')}
+    else{const h=$('#off');h.classList.remove('shake');void h.offsetWidth;h.classList.add('shake');msg($('#dm'),'bad','Not that room. Think about which team owns it.')}}});
+  function chips(){$('#chs').innerHTML=A.map((a,i)=>'<button class="chip'+(sel===i?' sel':'')+(pl[i]?' placed':'')+'" data-i="'+i+'" '+(pl[i]?'disabled':'')+'>'+I('tbl',16)+a[0]+'</button>').join('');$$('#chs .chip').forEach(b=>b.onclick=()=>{sel=+b.dataset.i;chips();msg($('#dm'),'','Now tap the right room on the map.')})}
+  chips()},
+subdomains(){
+  const L=$('#lab');
+  L.innerHTML='<div class="hd"><b>Build a subdomain tag</b></div><div class="office" id="off"></div><div class="chips" id="leg"></div><div class="fld"><select id="sp" aria-label="Parent domain"><option>Finance</option><option>Sales</option></select><input id="sn" value="Tax" aria-label="Subdomain name"><span class="pill" id="sv" style="--a:var(--c4)"></span></div><div class="fld"><button class="btn p" id="sb">Tag table gst_returns</button></div><div id="so"><div class="msg">Pick a parent, name the subdomain, then tag the table.</div></div>';
+  const o=Office($('#off'),{showSub:true,sel:'fin',onPick:id=>o.set({sel:id})});
+  const legend=ex=>{$('#leg').innerHTML=ROOMS.filter(r=>r.subs.length).map(r=>r.subs.map(s=>'<span class="pill" style="--a:'+r.a+'">'+r.tag+'/'+s+'</span>').join('')).join('')+(ex?'<span class="pill" style="--a:var(--c4)">'+ex+'</span>':'')};legend();
+  const upd=()=>$('#sv').innerHTML=I('lock',12)+' '+$('#sp').value+'/'+($('#sn').value.trim()||'...');
+  $('#sp').onchange=upd;$('#sn').oninput=upd;upd();
+  $('#sb').onclick=()=>{const n=$('#sn').value.trim(),p=$('#sp').value,so=$('#so');
+    if(!n)return so.innerHTML='<div class="msg bad">Type a subdomain name first.</div>';
+    if(n.includes('/'))return so.innerHTML='<div class="msg bad">The name cannot contain a slash. Databricks adds the slash between levels for you.</div>';
+    const t=p+'/'+n,other=p==='Finance'?'Sales':'Finance';const rid=p==='Finance'?'fin':'sales';
+    o.set({sel:rid,showSub:true,extra:{room:rid,name:n}});legend(t);
+    so.innerHTML='<div class="cols"><div class="msg ok"><b>Tags on gst_returns</b><br><span class="pill" style="--a:var(--c4)">'+I('lock',12)+' '+t+'</span><br><span class="mut">No separate "'+p+'" tag was added.</span></div><div class="msg ok"><b>Where people find it</b><br>Yes: '+t+' subdomain page<br>Yes: '+p+' domain page (under its parent)<br>No: '+other+' domain page</div></div>';labDone('subdomains')}},
+certified(){
+  const L=$('#lab');
+  const items=[['tbl','gold.sales.monthly_sales','Checked by Finance, refreshed daily'],['tbl','tmp_sales_copy','Personal copy, owner unknown'],['tbl','old_sales_2019','Last used in 2019']];
+  const st={};let only=false,role='a';
+  const pill=v=>v==='c'?'<span class="pill" style="--a:var(--c4)">'+I('chk',12)+' certified</span>':v==='d'?'<span class="pill" style="--a:var(--c1)">'+I('lock',12)+' deprecated</span>':'';
+  function draw(){
+    L.innerHTML='<div class="hd"><b>Sales tables</b><span class="tag">Pick a role, then set a status</span></div>'+
+    '<div class="fld"><label for="cr" class="mut">Act as</label><select id="cr"><option value="a">Analyst (no ASSIGN permission)</option><option value="s">Data steward (has ASSIGN)</option></select></div>'+
+    '<div class="rows">'+items.map((x,i)=>'<div class="rw'+(only&&st[i]!=='c'?' dim':'')+(only&&st[i]==='c'?' hit':'')+'"><span class="ty">'+I(x[0],20)+'</span><span class="nm">'+x[1]+'<br><small class="mut">'+x[2]+'</small></span>'+pill(st[i])+'<button class="btn sm" data-a="c" data-i="'+i+'">Certify</button><button class="btn sm" data-a="d" data-i="'+i+'">Deprecate</button></div>').join('')+'</div>'+
+    '<div class="fld"><button class="btn p" id="cf">'+I('srch',18)+(only?' Show all tables':' Show certified only')+'</button><button class="btn" id="cx">Reset</button></div>'+
+    '<div class="msg" id="cm">Certify the table people should use. Deprecate the one nobody should use. Tap a button again to undo it.</div>';
+    $('#cr').value=role;
+    $('#cr').onchange=e=>{role=e.target.value;msg($('#cm'),'',role==='s'?'You can now assign certification. Certify the right table and deprecate the old one.':'Analysts can read data but cannot assign certification.')};
+    $$('[data-a]',L).forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.i,a=b.dataset.a;role=$('#cr').value;
+      if(role==='a'){msg($('#cm'),'bad','Rejected. Setting certification needs the ASSIGN permission on system.certification_status. Switch to Data steward and try again.');return}
+      const was=st[i]===a;if(was)delete st[i];else st[i]=a;only=false;const keep=role;draw();$('#cr').value=keep;role=keep;
+      const good=st[0]==='c',old=st[2]==='d',stray=st[1]==='c'||st[2]==='c'||st[0]==='d';
+      if(was&&!(good&&old&&!stray))return msg($('#cm'),'',items[i][1]+' is back to no status.');
+      if(!was&&a==='c'&&i!==0)msg($('#cm'),'bad','Careful: '+items[i][1]+' is not checked data. Certifying it would mislead people.');
+      else if(!was&&a==='d'&&i===0)msg($('#cm'),'bad','That is the table everyone should use. Deprecating it would warn people away from good data.');
+      else if(good&&old&&stray)msg($('#cm'),'bad','Almost. Another table is certified by mistake. Tap its Certify button again to clear it.');
+      else if(good&&old){msg($('#cm'),'ok','Done. Now people see a check mark on the good table and a warning on the old one. Try Show certified only.');labDone('certified')}
+      else msg($('#cm'),'ok',a==='c'?'Certified. Now deprecate the old 2019 table.':'Deprecated. Now certify the checked table.')});
+    $('#cf').onclick=()=>{only=!only;const keep=$('#cr').value;draw();$('#cr').value=keep;role=keep;if(only){const n=items.filter((x,i)=>st[i]==='c').length;msg($('#cm'),n?'ok':'bad',n?'Search shows only certified data. New joiners find the right table first.':'Nothing is certified yet, so a certified-only search finds nothing.')}};
+    $('#cx').onclick=()=>{for(const k in st)delete st[k];only=false;role='a';draw()}}
+  draw()},
+pages(){
+  const L=$('#lab');const F={Domain:'The one domain or subdomain the Page belongs to.',Owner:'The responsible person. The creator is the owner by default.',Synonyms:'Alternative names, so a search with another word still finds the Page.',Description:'A short summary of the concept.','Page body':'Freeform rich text with links, images, tables and @ mentions of assets.','Related assets':'Assets that connect to the Page: parent and child Pages, metrics, tables.',Sources:'Databricks and external assets or links where the content came from.'};
+  const ST=[['Draft','Anyone with access to the domain can create a draft.'],['Published','A page manager or curator published it, so everyone with access can read it.'],['Certified','Only curators can certify (or deprecate) a Page.']];
+  const BT=['Create a draft Page','Publish it (page manager or curator)','Certify it (curator only)','Start again'];
+  let stage=0;
+  L.innerHTML='<div class="hd"><b>Resolve conflicting definitions</b></div><div class="cols"><div class="msg bad"><b>Sales team</b><br>Active customer = bought in the last 30 days</div><div class="msg bad"><b>Support team</b><br>Active customer = opened a ticket in the last 90 days</div></div><div class="fld"><button class="btn p" id="pc"></button></div><div id="po"></div><h3 style="margin-top:18px">The seven fields of a Page</h3><div class="chips" id="pf">'+Object.keys(F).map(k=>'<button class="chip" data-k="'+k+'">'+k+'</button>').join('')+'</div><div class="msg" id="pm">Tap a field to see what it holds.</div>';
+  function draw(){$('#pc').textContent=BT[stage];
+    $('#po').innerHTML=stage===0?'':'<div class="pg"><div class="steps">'+ST.map((x,i)=>'<span class="stp'+(i<stage?' on':'')+'">'+(i<stage?I('chk',14):'')+x[0]+'</span>').join('')+'</div><h3 style="margin:12px 0 4px">Active customer</h3><p style="margin:0 0 8px">A customer who bought something in the last 30 days.</p><span class="pill" style="--a:var(--c2)">Domain: Sales</span><span class="pill" style="--a:var(--c3)">Owner: Sales Ops</span><span class="pill" style="--a:var(--c1)">Synonym: Live customer</span><span class="pill" style="--a:var(--c4)">Related: customers, orders</span><p class="mut" style="margin:8px 0 0;font-size:.9rem">'+ST[stage-1][1]+'</p></div>';
+    if(stage===3)labDone('pages')}
+  $('#pc').onclick=()=>{stage=stage===3?0:stage+1;draw()};
+  $$('#pf .chip').forEach(b=>b.onclick=()=>{$$('#pf .chip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');msg($('#pm'),'',b.dataset.k+': '+F[b.dataset.k])});
+  draw()}
+};
+/* architecture */
+const AN=[
+ {id:'policy',x:20,y:20,w:180,h:58,t:'Tag policy',s:'Rules for a tag',a:C2,d:'The rules for a governed tag: which values are allowed and who may create or assign it.',f:['Permissions: CREATE, MANAGE, ASSIGN','Account admins hold them by default'],go:'governed'},
+ {id:'gtag',x:220,y:20,w:180,h:58,t:'Governed tag',s:'Lock icon in the UI',a:C2,d:'An account-level tag with a policy attached. It is the building block for domains, access rules and classification.',f:['Up to 1,000 per account, 500 values each','Can drive attribute-based access control'],go:'governed'},
+ {id:'domain',x:20,y:130,w:180,h:58,t:'Domain',s:'A governed tag, e.g. Finance',a:C3,d:'A business area. In practice a domain is a governed tag, so tagging an asset with it adds the asset to the domain.',f:['Browse it on the Discover page','Managed by curators'],go:'domains'},
+ {id:'page',x:220,y:130,w:180,h:58,t:'Page',s:'Business term',a:C1,d:'A governed explanation of a business term. It belongs to exactly one domain or subdomain.',f:['Seven fields, including owner and synonyms','Published by page managers, certified by curators'],go:'pages'},
+ {id:'sub',x:20,y:240,w:180,h:58,t:'Subdomain',s:'Parent/Name tag',a:C4,d:'A smaller area inside a domain, written as a governed tag named Parent/Name, such as Finance/Tax.',f:['The slash is reserved','One parent each; assets can be in many'],go:'subdomains'},
+ {id:'ai',x:220,y:240,w:180,h:58,t:'AI agents',s:'Genie Ontology',a:C2,d:'Domains and Pages give AI agents business context, so they search the right area and use your definitions.',f:['Pages are the human-modeled layer','Genie One uses published Pages','Agents respect each user\'s permissions'],go:'pages'},
+ {id:'cat',x:20,y:360,w:112,h:54,t:'Catalog',s:'Top container',a:C1,d:'The top container. Tag it and everything inside inherits the tag.',f:['Holds schemas'],go:'tags'},
+ {id:'sch',x:154,y:360,w:112,h:54,t:'Schema',s:'Inside a catalog',a:C1,d:'Sits inside a catalog. Tag a schema to cover all its tables.',f:['Holds tables'],go:'tags'},
+ {id:'tbl',x:288,y:360,w:112,h:54,t:'Table',s:'Where rows live',a:C1,d:'Inherits tags from its schema and catalog. Individual columns do not inherit.',f:['An inherited tag is changed on the parent'],go:'tags'}
+];
+const AE=[['M200 49H220',''],['M310 78C310 104 110 104 110 130','becomes'],['M200 159H220',''],['M110 188V240','Parent/Name'],['M310 188V240','context'],['M110 298C110 330 76 330 76 360','tag assets'],['M132 387H154',''],['M266 387H288','']];
+function viewArch(){
+  return '<section class="glass mh" style="--a:var(--c2)"><div class="sico" style="--a:var(--c2)">'+I('arch',28)+'</div><div class="t"><div class="meta">Wrap up · about 3 minutes</div><h1>Big picture: how it all connects</h1></div></section>'+
+  '<section class="glass how"><b>How to read this diagram</b><span class="mut">Arrows show what leads to what. Colors match the lessons: red for tags, blue for governed tags, amber for domains, green for subdomains. Tap any block to read what it does, or play the guided tour.</span></section>'+
+  '<h2>Interactive diagram</h2><div class="arch"><div class="glass lab"><svg viewBox="0 0 420 440" id="asvg" role="group" aria-label="Architecture diagram"><defs><marker id="ar" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="var(--mut)"/></marker></defs>'+
+  AE.map(e=>'<path class="edge" d="'+e[0]+'" marker-end="url(#ar)"/>').join('')+
+  '<text class="elb" x="214" y="112">becomes</text><text class="elb" x="118" y="216">Parent/Name</text><text class="elb" x="318" y="216">context</text><text class="elb" x="26" y="342">tag assets</text><text class="elb" x="20" y="436">Tags flow down: catalog to schema to table</text>'+
+  AN.map(n=>'<g class="nd" data-n="'+n.id+'" tabindex="0" role="button" aria-label="'+n.t+'" style="--a:'+n.a+'"><rect x="'+n.x+'" y="'+n.y+'" width="'+n.w+'" height="'+n.h+'" rx="14"/><text x="'+(n.x+14)+'" y="'+(n.y+24)+'">'+n.t+'</text><text class="s" x="'+(n.x+14)+'" y="'+(n.y+42)+'">'+n.s+'</text></g>').join('')+
+  '</svg></div><div class="glass dp" id="dp"></div></div><div id="doneBar"></div>';
+}
+function mountArch(){
+  const dp=$('#dp');let tour=null;
+  const show=id=>{const n=AN.find(x=>x.id===id);S.seen[id]=1;save();
+    $$('.nd').forEach(g=>{g.classList.toggle('on',g.dataset.n===id);if(S.seen[g.dataset.n])g.classList.add('seen')});
+    const c=Object.keys(S.seen).filter(k=>AN.some(a=>a.id===k)).length;
+    dp.style.setProperty('--a',n.a);
+    dp.innerHTML='<span class="tag">'+c+' of '+AN.length+' explored</span><h2 style="margin:12px 0 6px;color:var(--a)">'+n.t+'</h2><p>'+n.d+'</p><ul>'+n.f.map(f=>'<li>'+f+'</li>').join('')+'</ul><div class="prog"><i style="width:'+(c/AN.length*100)+'%"></i></div><div class="fld"><button class="btn p" id="tr">'+(tour?'Stop tour':'Play guided tour')+'</button><a class="btn" href="#'+n.go+'">Open lesson '+I('go',14)+'</a></div>';
+    $('#tr').onclick=()=>tour?stop():play();
+    if(c===AN.length)labDone('architecture')};
+  const seq=['policy','gtag','domain','sub','cat','sch','tbl','page','ai'];
+  function stop(){clearInterval(tour);tour=null;const b=$('#tr');if(b)b.textContent='Play guided tour'}
+  function play(){let i=0;show(seq[0]);tour=setInterval(()=>{i++;if(i>=seq.length){stop();return}show(seq[i]);const b=$('#tr');if(b)b.textContent='Stop tour'},2600);$('#tr').textContent='Stop tour'}
+  $$('.nd').forEach(g=>{const f=()=>{if(tour)stop();show(g.dataset.n)};g.onclick=f;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});
+  show('policy');paintDone('architecture');
+  mountArch.stop=stop;
+}
+/* quiz */
+const QZ=[
+ ['Riya sees a table with the note team = sales. What is that note?',['A tag','A domain','A Page'],0,'A tag is a key and optional value that describes an object.'],
+ ['Which one gives people a fixed menu of allowed values?',['A regular tag','A governed tag','A schema'],1,'A governed tag has a tag policy that lists the allowed values.'],
+ ['What permission lets someone apply a governed tag?',['ASSIGN','SELECT','MODIFY'],0,'ASSIGN on the tag, plus APPLY TAG on the object.'],
+ ['Which tag name defines a Tax subdomain under Finance?',['Finance.Tax','Finance/Tax','Tax-Finance'],1,'Subdomain tags use Parent/Name. The slash is reserved for this.'],
+ ['Do tags on a schema pass down to individual table columns?',['Yes, always','No, columns do not inherit tags','Only for governed tags'],1,'Tags pass down to objects inside a catalog or schema, but not to individual table columns.'],
+ ['Who can certify or deprecate a Page?',['Any consumer','Page managers','Only curators'],2,'Anyone with access can draft, page managers and curators publish, and only curators certify or deprecate.'],
+ ['You tag a table with Finance/Tax. Does it also get the Finance tag?',['Yes, automatically','No, but it still appears on the Finance page','No, and it is hidden from Finance'],1,'The parent tag is separate, but subdomain assets show on the parent domain page.'],
+ ['How many domains or subdomains can one Page belong to?',['Exactly one','Any number','None'],0,'Every Page is attached to exactly one domain or subdomain.']
+,['What does a certified badge tell people about a table?',['It is the newest table','Your organisation approves it as trustworthy','It cannot be changed'],1,'Certified is a trust signal. It is the system.certification_status tag set to certified.']];
+function viewQuiz(){
+  return '<section class="glass mh" style="--a:var(--c3)"><div class="sico" style="--a:var(--c3)">'+I('cup',28)+'</div><div class="t"><div class="meta">Wrap up · about 3 minutes</div><h1>Final check: what did you learn?</h1></div></section><section class="glass how"><b>How it works</b><span class="mut">'+QZ.length+' short questions. You earn 20 XP for each correct answer the first time, plus 40 XP for finishing. You can retry as many times as you like.</span></section><div class="glass lab" id="qb" style="margin-top:16px;--a:var(--c3)"></div><div id="doneBar"></div>';
+}
+function mountQuiz(){
+  let i=0,sc=0,locked=false;
+  const q=()=>{locked=false;const x=QZ[i];$('#qb').innerHTML='<div class="hd"><b>Question '+(i+1)+' of '+QZ.length+'</b><span class="tag">Score '+sc+'</span></div><div class="prog"><i style="width:'+(i/QZ.length*100)+'%"></i></div><h3 style="font-size:1.15rem;margin-top:14px">'+x[0]+'</h3><div class="qa">'+x[1].map((o,j)=>'<button class="qo" data-j="'+j+'"><span class="sico" style="--a:var(--c3);width:30px;height:30px;border-radius:9px">'+'ABC'[j]+'</span>'+o+'</button>').join('')+'</div><div class="msg" id="qm" style="display:none"></div><div class="fld"><button class="btn p" id="qn" style="display:none">'+(i===QZ.length-1?'See results':'Next question')+'</button></div>';
+    $$('.qo').forEach(b=>b.onclick=()=>{if(locked)return;locked=true;const j=+b.dataset.j,ok=j===x[2];$$('.qo')[x[2]].classList.add('right');if(!ok)b.classList.add('wrong');if(ok){sc++;if(!S.done.quiz){S.xp+=20;save();chrome();toast('Correct. +20 XP')}else toast('Correct')}
+      const m=$('#qm');m.style.display='block';msg(m,ok?'ok':'bad',(ok?'Correct. ':'Not quite. ')+x[3]);$('#qn').style.display='inline-flex';$('#qn').onclick=()=>{i++;i<QZ.length?q():end()}})};
+  const end=()=>{S.qbest=Math.max(S.qbest,sc);const first=!S.done.quiz;if(first){S.done.quiz=1;S.xp+=40;confetti()}save();chrome();
+    $('#qb').innerHTML='<div style="text-align:center;padding:10px"><div class="sico" style="--a:var(--c4);width:72px;height:72px;margin:0 auto 12px;border-radius:22px">'+I('cup',36)+'</div><h2 style="margin:0 0 6px">'+sc+' of '+QZ.length+' correct</h2><p class="mut">'+(sc===QZ.length?'Perfect score. You can now teach this to someone else.':sc>=4?'Strong result. Review the lessons you missed.':'Good start. Revisit the missions and try again.')+'</p><div class="cta" style="justify-content:center"><button class="btn p" id="rt">Try again</button><a class="btn" href="#home">Back to dashboard</a></div></div>';
+    $('#rt').onclick=()=>{i=0;sc=0;q()};paintDone('quiz')};
+  q();
+}
+
+/* quick reference */
+const CHEAT=[["Tag","A label (key and optional value) on an object","team = sales","Owner, or anyone with APPLY TAG","Catalog Explorer, workspace search"],["Governed tag","A tag with a policy: allowed values and permissions","department = Finance","Admins create it. You need ASSIGN to apply it","Lock icon, Governed section of the tag menu"],["Domain","A business area, built on a governed tag","Finance","Curators (MANAGE DISCOVER or MANAGE DOMAIN)","Discover page"],["Subdomain","A smaller area inside a domain","Finance/Tax","Curators with MANAGE DOMAIN on it","Subdomains section of the domain page"],["Page","A governed definition of a business term","Active customer","Owner edits. Page managers publish. Curators certify","Discover and domain pages"],["Certified badge","A trust marker: certified (approved) or deprecated (outdated)","system.certification_status = certified","Needs ASSIGN on the system tag, plus owner or APPLY TAG","Catalog Explorer, search filters"]];
+const FAQ=[["Does a tag change my data?","No. A tag is metadata. It describes an object and never changes the rows inside it."],["What is the difference between a tag and a governed tag?","A regular tag accepts any text from anyone with permission. A governed tag has a policy: only approved values, and only people with ASSIGN can apply it."],["Is a domain the same as a catalog or schema?","No. Catalogs and schemas are technical containers. A domain is a business grouping made with a governed tag. One domain can hold assets from many catalogs, and one asset can be in several domains."],["Can I remove an inherited tag from one table?","For domain tags, no: an inherited tag can only be changed on the parent. For other tags, a more specific tag on the table takes priority over the parent's tag with the same key."],["Do I need to be an admin?","Not for everything. To add a tag you need to own the object or have APPLY TAG (plus USE SCHEMA and USE CATALOG). Governed tags also need ASSIGN. Managing domains needs curator permissions."],["Can I put personal data in a tag or a Page?","No. Tag text and Page text are stored as plain text and may be replicated globally. Use tags to label data, not to hold personal details."],["Are tags case sensitive?","Yes. Tag keys are case sensitive, so Sales and sales are different. Governed tag values are case sensitive too."],["Which tag names are not allowed?","Regular tag keys cannot contain . , - = / : and cannot start or end with a space. Use underscores, like cost_center."],["Why can I not see a dashboard on the Discover page?","Dashboards and Genie agents appear only for users with Consumer access or the Databricks SQL entitlement."],["Are all of these features generally available?","It varies. Pages show as Beta on the Discover page and need an account admin to enable them. Some auto-tagging features are beta. Check the Databricks release notes for your cloud."],["What does Certified mean?","It means your organisation vouches for an asset. It is the system governed tag system.certification_status set to certified. Deprecated is the opposite: outdated, do not use. Neither changes the data itself."]];
+const GLOSS=[["Databricks","A platform where companies store, process and analyse data and build AI."],["Unity Catalog","The Databricks layer that tracks data and AI assets and who may use them. Tags, domains and Pages live here."],["Catalog, schema, table","Nested containers, like folder, subfolder and file. The table holds the actual rows of data."],["Asset","Anything you can find and use: a table, view, dashboard, notebook, model or Genie space."],["Metadata","Information about data, such as labels, owners and meanings, rather than the data itself."],["Tag","A key and optional value attached to an object, such as team = sales."],["Governed tag","An account-level tag with a policy for allowed values and who may assign it."],["Tag policy","The rules attached to a governed tag."],["ABAC","Attribute-based access control. Access rules that use tags as attributes, for example hiding data tagged as sensitive."],["Domain","A business area, such as Finance, built on a governed tag."],["Subdomain","A smaller area inside a domain. Its tag is named Parent/Name."],["Discover page","The curated place to browse assets by domain, search and see recommendations."],["Curator","Someone who manages domains, subdomains and Pages. Holds MANAGE DISCOVER or MANAGE DOMAIN."],["Page manager","Someone with MANAGE PAGES who can publish and manage Pages."],["Page","A governed definition of a business term, kept next to the data."],["Genie Ontology","The business context that AI agents use. Domains and Pages feed it."],["Certified","A mark showing an asset or Page is approved and trusted."],["Certified","A status that marks an asset as approved and trusted. Set with the system.certification_status tag."],["Deprecated","A status that warns an asset is outdated and should not be used in new work."]];
+const ROLES=[["Anyone who owns an object","Adds ordinary tags (or has APPLY TAG, USE SCHEMA and USE CATALOG)"],["Tag admin","Creates governed tags and allowed values; grants ASSIGN (needs CREATE, MANAGE)"],["Curator","Creates and manages domains and subdomains; can certify Pages"],["Page manager","Publishes and manages Pages (MANAGE PAGES)"],["Consumer","Browses Discover, creates Page drafts, suggests edits"]];
+const DOCS=[["Governed tags","https://docs.databricks.com/aws/admin/governed-tags"],["Apply tags to Unity Catalog objects","https://docs.databricks.com/aws/en/database-objects/tags"],["Domains and subdomains","https://docs.databricks.com/aws/en/uc-semantics/domains"],["Discover page","https://docs.databricks.com/aws/en/discover/discover-page"],["Pages","https://docs.databricks.com/en/uc-semantics/pages"],["Certified and deprecated data","https://docs.databricks.com/aws/en/data-governance/unity-catalog/certify-deprecate-data"]];
+function viewRef(){
+  return '<section class="glass mh" style="--a:var(--c4)"><div class="sico" style="--a:var(--c4)">'+I('book',28)+'</div><div class="t"><div class="meta">Look things up</div><h1>Quick reference</h1></div></section>'+
+  '<h2>Cheat sheet</h2><div class="glass lab"><div class="tw"><table><tr><th>Concept</th><th>What it is</th><th>Example</th><th>Who controls it</th><th>Where you see it</th></tr>'+CHEAT.map(r=>'<tr>'+r.map((c,i)=>'<td>'+(i===0?'<b>'+c+'</b>':i===2?'<code class="mono">'+c+'</code>':c)+'</td>').join('')+'</tr>').join('')+'</table></div><div class="fld"><button class="btn" id="cp">Copy cheat sheet as text</button></div><div class="msg" id="cpm" style="display:none"></div></div>'+
+  '<h2>Who can do what</h2><div class="glass lab"><div class="tw"><table><tr><th>Role</th><th>What they do</th></tr>'+ROLES.map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td></tr>').join('')+'</table></div></div>'+
+  '<h2>Common questions <span class="hint">Tap to open</span></h2><div class="tiles" style="grid-template-columns:1fr" id="faq">'+FAQ.map(f=>'<div class="glass tile" style="--a:var(--c4)"><button aria-expanded="false"><span class="tn">'+f[0]+'</span><span class="pl">'+I('go',18)+'</span></button><div class="tb">'+f[1]+'</div></div>').join('')+'</div>'+
+  '<h2>Words you will see</h2><div class="glass lab"><input class="gq" id="gq" placeholder="Search words, e.g. domain" aria-label="Search words"><div class="gl" id="gl"></div><div class="msg" id="gn" style="display:none">No matching word. Try a shorter search.</div></div>'+
+  '<h2>Good to know</h2><div class="glass how" style="margin-top:0"><span class="mut">Availability changes over time and differs by cloud and account. Pages and some auto-tagging features are marked Beta in the docs, and an account admin may need to enable domains and Discover. If something is missing in your workspace, ask your admin and check the release notes.</span></div>'+
+  '<h2>Official documentation</h2><div class="glass lab src">'+DOCS.map(d=>'<a href="'+d[1]+'" target="_blank" rel="noopener">'+d[0]+' (opens docs.databricks.com)</a>').join('')+'</div>';
+}
+function mountRef(){
+  $$('#faq .tile button').forEach(b=>b.onclick=()=>{const t=b.parentNode;const o=t.classList.toggle('open');b.setAttribute('aria-expanded',o)});
+  const draw=q=>{const f=GLOSS.filter(g=>(g[0]+' '+g[1]).toLowerCase().includes(q.toLowerCase()));$('#gl').innerHTML=f.map(g=>'<div><b>'+g[0]+'</b><span>'+g[1]+'</span></div>').join('');$('#gn').style.display=f.length?'none':'block'};
+  draw('');$('#gq').oninput=e=>draw(e.target.value.trim());
+  $('#cp').onclick=()=>{const txt=CHEAT.map(r=>r[0]+': '+r[1]+'. Example: '+r[2]+'. Controlled by: '+r[3]+'. Seen in: '+r[4]+'.').join('\n');const m=$('#cpm');m.style.display='block';
+    const ok=()=>msg(m,'ok','Copied. Paste it anywhere.'),fail=()=>msg(m,'bad','Copy was blocked. Select the table and copy it instead.');
+    const old=()=>{try{const t=document.createElement('textarea');t.value=txt;t.style.cssText='position:fixed;opacity:0;top:0';document.body.appendChild(t);t.select();const r=document.execCommand('copy');t.remove();r?ok():fail()}catch(e){fail()}};
+    msg(m,'ok','Copying…');
+    try{navigator.clipboard.writeText(txt).then(ok,old)}catch(e){old()}};
+}
+/* router */
+function route(to){
+  if(typeof mountArch.stop==='function')mountArch.stop();
+  let id=to||location.hash.slice(1);if(!META[id])id='home';
+  $$('.nav').forEach(a=>a.classList.toggle('on',a.dataset.id===id));
+  const m=getM(id);const li=ORDER.indexOf(id);$('#crumbs').innerHTML='Data Organization Guide / <b>'+(id==='home'?'Start here':(li>=0&&li<6?'Step '+(li+1)+': '+m.n:m.n))+'</b>';
+  const v=$('#view');v.style.animation='none';void v.offsetWidth;v.style.animation='';
+  if(id==='home'){v.innerHTML=viewHome();mountHome()}
+  else if(id==='architecture'){v.innerHTML=viewArch();mountArch()}
+  else if(id==='quiz'){v.innerHTML=viewQuiz();mountQuiz()}
+  else if(id==='reference'){v.innerHTML=viewRef();mountRef()}
+  else{v.innerHTML=viewMod(m);wireCommon(m);LABS[id]();}
+  document.body.classList.remove('mo');$('#menu').setAttribute('aria-expanded','false');window.scrollTo(0,0);chrome();
+}
+/* quiz completion bar override */
+const _pd=paintDone;
+paintDone=function(id){if(id==='quiz'){const b=$('#doneBar');if(!b)return;b.className='';b.innerHTML=S.done.quiz?'<div class="glass done ready"><div class="sico" style="--a:var(--c4)">'+I('chk',22)+'</div><div class="t"><b>Course complete</b><div class="mut" style="font-size:.88rem">Best score '+S.qbest+' of '+QZ.length+'. You earned every badge.</div></div></div>':'';return}_pd(id)};
+/* boot */
+buildSide();setTheme();
+$('#menu').onclick=()=>{document.body.classList.add('mo');$('#menu').setAttribute('aria-expanded','true');const f=$('.nav.on')||$('.nav');if(f)f.focus()};
+const closeMenu=()=>{document.body.classList.remove('mo');$('#menu').setAttribute('aria-expanded','false')};
+$('#ov').onclick=closeMenu;
+addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mo')){closeMenu();$('#menu').focus()}});
+$('#theme').onclick=()=>{S.lt=S.lt?0:1;document.body.classList.toggle('lt',!!S.lt);save();setTheme()};
+addEventListener('hashchange',()=>route());
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a)return;const id=a.getAttribute('href').slice(1);if(!META[id])return;e.preventDefault();
+  try{history.replaceState(null,'','#'+id)}catch(x){try{location.hash=id}catch(y){}}
+  route(id)});
+route();
+</script>
+</body>
+</html>
